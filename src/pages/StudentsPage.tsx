@@ -1,59 +1,59 @@
-import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
-import { cardsApi } from '../api/cards'
-import { studentsApi } from '../api/students'
-import { useToast } from '../context/ToastContext'
-import { useAsync } from '../hooks/useAsync'
-import type { Gender, Student, StudentRequestDto } from '../types'
-import { Badge } from '../components/ui/Badge'
-import { Button } from '../components/ui/Button'
-import { Input } from '../components/ui/Input'
-import { Modal } from '../components/ui/Modal'
-import { PageHeader } from '../components/ui/PageHeader'
-import { Select } from '../components/ui/Select'
-import { Textarea } from '../components/ui/Textarea'
-import { EmptyState, ErrorState, LoadingState } from '../components/ui/States'
+import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { cardsApi } from "../api/cards";
+import { studentsApi } from "../api/students";
+import { useToast } from "../context/ToastContext";
+import { useAsync } from "../hooks/useAsync";
+import type { Gender, Student, StudentRequestDto } from "../types";
+import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { Modal } from "../components/ui/Modal";
+import { PageHeader } from "../components/ui/PageHeader";
+import { Select } from "../components/ui/Select";
+import { Textarea } from "../components/ui/Textarea";
+import { EmptyState, ErrorState, LoadingState } from "../components/ui/States";
 
 const emptyForm: StudentRequestDto = {
-  name: '',
-  email: '',
-  mobile: '',
-  department: '',
-  semester: '',
-  gender: 'MALE',
-  address: '',
-  dob: '',
+  name: "",
+  email: "",
+  mobile: "",
+  department: "",
+  semester: "",
+  gender: "MALE",
+  address: "",
+  dob: "",
   cardId: 0,
-}
+};
 
 export function StudentsPage() {
-  const { showSuccess, showError } = useToast()
-  const [page, setPage] = useState(0)
-  const [pageSize] = useState(10)
-  const [sortBy, setSortBy] = useState('id')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState<Student | null>(null)
-  const [form, setForm] = useState<StudentRequestDto>(emptyForm)
-  const [submitting, setSubmitting] = useState(false)
+  const { showSuccess, showError } = useToast();
+  const [page, setPage] = useState(0);
+  const [pageSize] = useState(10);
+  const [sortBy, setSortBy] = useState("id");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Student | null>(null);
+  const [form, setForm] = useState<StudentRequestDto>(emptyForm);
+  const [submitting, setSubmitting] = useState(false);
 
-  const { data: cards } = useAsync(() => cardsApi.getAll())
+  const { data: cards } = useAsync(() => cardsApi.getAll());
   const { data, loading, error, reload } = useAsync(
     () => studentsApi.getAll({ pageNo: page, pageSize, sortBy, sortOrder }),
     [page, pageSize, sortBy, sortOrder],
-  )
+  );
 
   const unassignedCards =
-    cards?.filter((card) => !card.student || (editing && card.id === editing.card?.id)) ?? []
+    cards?.filter((card) => editing && card.id === editing.card?.id) ?? [];
 
   const openCreate = () => {
-    setEditing(null)
-    setForm(emptyForm)
-    setModalOpen(true)
-  }
+    setEditing(null);
+    setForm(emptyForm);
+    setModalOpen(true);
+  };
 
   const openEdit = (student: Student) => {
-    setEditing(student)
+    setEditing(student);
     setForm({
       name: student.name,
       email: student.email,
@@ -64,48 +64,50 @@ export function StudentsPage() {
       address: student.address,
       dob: student.dob,
       cardId: student.card?.id ?? 0,
-    })
-    setModalOpen(true)
-  }
+    });
+    setModalOpen(true);
+  };
 
   const closeModal = () => {
-    setModalOpen(false)
-    setEditing(null)
-    setForm(emptyForm)
-  }
+    setModalOpen(false);
+    setEditing(null);
+    setForm(emptyForm);
+  };
 
   const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault()
-    setSubmitting(true)
+    event.preventDefault();
+    setSubmitting(true);
 
     try {
       if (editing) {
-        await studentsApi.update(editing.id, form)
-        showSuccess('Student updated successfully')
+        await studentsApi.update(editing.id, form);
+        showSuccess("Student updated successfully");
       } else {
-        await studentsApi.create(form)
-        showSuccess('Student created successfully')
+        await studentsApi.create(form);
+        showSuccess("Student created successfully");
       }
-      closeModal()
-      await reload()
+      closeModal();
+      await reload();
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to save student')
+      showError(err instanceof Error ? err.message : "Failed to save student");
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   const handleDelete = async (student: Student) => {
-    if (!window.confirm(`Delete student "${student.name}"?`)) return
+    if (!window.confirm(`Delete student "${student.name}"?`)) return;
 
     try {
-      await studentsApi.remove(student.id)
-      showSuccess('Student deleted successfully')
-      await reload()
+      await studentsApi.remove(student.id);
+      showSuccess("Student deleted successfully");
+      await reload();
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to delete student')
+      showError(
+        err instanceof Error ? err.message : "Failed to delete student",
+      );
     }
-  }
+  };
 
   return (
     <div>
@@ -126,14 +128,14 @@ export function StudentsPage() {
           aria-label="Sort by"
           value={sortBy}
           onChange={(event) => {
-            setSortBy(event.target.value)
-            setPage(0)
+            setSortBy(event.target.value);
+            setPage(0);
           }}
           options={[
-            { value: 'id', label: 'Sort: ID' },
-            { value: 'name', label: 'Sort: Name' },
-            { value: 'email', label: 'Sort: Email' },
-            { value: 'department', label: 'Sort: Department' },
+            { value: "id", label: "Sort: ID" },
+            { value: "name", label: "Sort: Name" },
+            { value: "email", label: "Sort: Email" },
+            { value: "department", label: "Sort: Department" },
           ]}
           className="w-44"
         />
@@ -142,12 +144,12 @@ export function StudentsPage() {
           aria-label="Sort order"
           value={sortOrder}
           onChange={(event) => {
-            setSortOrder(event.target.value as 'asc' | 'desc')
-            setPage(0)
+            setSortOrder(event.target.value as "asc" | "desc");
+            setPage(0);
           }}
           options={[
-            { value: 'asc', label: 'Ascending' },
-            { value: 'desc', label: 'Descending' },
+            { value: "asc", label: "Ascending" },
+            { value: "desc", label: "Descending" },
           ]}
           className="w-36"
         />
@@ -191,7 +193,13 @@ export function StudentsPage() {
                       <td className="px-4 py-3">{student.department}</td>
                       <td className="px-4 py-3">
                         {student.card ? (
-                          <Badge tone={student.card.cardStatus === 'ACTIVE' ? 'success' : 'warning'}>
+                          <Badge
+                            tone={
+                              student.card.cardStatus === "ACTIVE"
+                                ? "success"
+                                : "warning"
+                            }
+                          >
                             Card #{student.card.id}
                           </Badge>
                         ) : (
@@ -200,10 +208,18 @@ export function StudentsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm" onClick={() => openEdit(student)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openEdit(student)}
+                          >
                             <Pencil className="size-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(student)}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(student)}
+                          >
                             <Trash2 className="size-4 text-red-600" />
                           </Button>
                         </div>
@@ -217,14 +233,25 @@ export function StudentsPage() {
 
           <div className="mt-4 flex items-center justify-between">
             <p className="text-sm text-text-muted">
-              Page {data.number + 1} of {Math.max(data.totalPages, 1)} · {data.totalElements} students
+              Page {data.number + 1} of {Math.max(data.totalPages, 1)} ·{" "}
+              {data.totalElements} students
             </p>
             <div className="flex gap-2">
-              <Button variant="secondary" size="sm" disabled={data.first} onClick={() => setPage((p) => p - 1)}>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={data.first}
+                onClick={() => setPage((p) => p - 1)}
+              >
                 <ChevronLeft className="size-4" />
                 Previous
               </Button>
-              <Button variant="secondary" size="sm" disabled={data.last} onClick={() => setPage((p) => p + 1)}>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={data.last}
+                onClick={() => setPage((p) => p + 1)}
+              >
                 Next
                 <ChevronRight className="size-4" />
               </Button>
@@ -235,7 +262,7 @@ export function StudentsPage() {
 
       <Modal
         open={modalOpen}
-        title={editing ? 'Edit Student' : 'Add Student'}
+        title={editing ? "Edit Student" : "Add Student"}
         onClose={closeModal}
         wide
         footer={
@@ -244,34 +271,77 @@ export function StudentsPage() {
               Cancel
             </Button>
             <Button type="submit" form="student-form" disabled={submitting}>
-              {submitting ? 'Saving...' : editing ? 'Update Student' : 'Create Student'}
+              {submitting
+                ? "Saving..."
+                : editing
+                  ? "Update Student"
+                  : "Create Student"}
             </Button>
           </>
         }
       >
-        <form id="student-form" onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-          <Input label="Full Name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <Input label="Email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <Input label="Mobile" required value={form.mobile} onChange={(e) => setForm({ ...form, mobile: e.target.value })} />
-          <Input label="Date of Birth" required value={form.dob} onChange={(e) => setForm({ ...form, dob: e.target.value })} />
-          <Input label="Department" required value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
-          <Input label="Semester" required value={form.semester} onChange={(e) => setForm({ ...form, semester: e.target.value })} />
+        <form
+          id="student-form"
+          onSubmit={handleSubmit}
+          className="grid gap-4 sm:grid-cols-2"
+        >
+          <Input
+            label="Full Name"
+            required
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+          <Input
+            label="Email"
+            type="email"
+            required
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+          <Input
+            label="Mobile"
+            required
+            value={form.mobile}
+            onChange={(e) => setForm({ ...form, mobile: e.target.value })}
+          />
+          <Input
+            label="Date of Birth"
+            required
+            value={form.dob}
+            onChange={(e) => setForm({ ...form, dob: e.target.value })}
+          />
+          <Input
+            label="Department"
+            required
+            value={form.department}
+            onChange={(e) => setForm({ ...form, department: e.target.value })}
+          />
+          <Input
+            label="Semester"
+            required
+            value={form.semester}
+            onChange={(e) => setForm({ ...form, semester: e.target.value })}
+          />
           <Select
             label="Gender"
             value={form.gender}
-            onChange={(e) => setForm({ ...form, gender: e.target.value as Gender })}
+            onChange={(e) =>
+              setForm({ ...form, gender: e.target.value as Gender })
+            }
             options={[
-              { value: 'MALE', label: 'Male' },
-              { value: 'FEMALE', label: 'Female' },
+              { value: "MALE", label: "Male" },
+              { value: "FEMALE", label: "Female" },
             ]}
           />
           <Select
             label="Library Card"
             required
-            value={String(form.cardId || '')}
-            onChange={(e) => setForm({ ...form, cardId: Number(e.target.value) })}
+            value={String(form.cardId || "")}
+            onChange={(e) =>
+              setForm({ ...form, cardId: Number(e.target.value) })
+            }
             options={[
-              { value: '', label: 'Select a card' },
+              { value: "", label: "Select a card" },
               ...unassignedCards.map((card) => ({
                 value: String(card.id),
                 label: `Card #${card.id} (${card.cardStatus})`,
@@ -279,10 +349,15 @@ export function StudentsPage() {
             ]}
           />
           <div className="sm:col-span-2">
-            <Textarea label="Address" required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <Textarea
+              label="Address"
+              required
+              value={form.address}
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
+            />
           </div>
         </form>
       </Modal>
     </div>
-  )
+  );
 }
