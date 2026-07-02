@@ -37,14 +37,11 @@ export function StudentsPage() {
   const [form, setForm] = useState<StudentRequestDto>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
 
-  const { data: cards } = useAsync(() => cardsApi.getAll());
+  const { data: unassignedCards } = useAsync(() => cardsApi.getUnused());
   const { data, loading, error, reload } = useAsync(
     () => studentsApi.getAll({ pageNo: page, pageSize, sortBy, sortOrder }),
     [page, pageSize, sortBy, sortOrder],
   );
-
-  const unassignedCards =
-    cards?.filter((card) => editing && card.id === editing.card?.id) ?? [];
 
   const openCreate = () => {
     setEditing(null);
@@ -342,7 +339,7 @@ export function StudentsPage() {
             }
             options={[
               { value: "", label: "Select a card" },
-              ...unassignedCards.map((card) => ({
+              ...(unassignedCards ||  []).map((card) => ({
                 value: String(card.id),
                 label: `Card #${card.id} (${card.cardStatus})`,
               })),

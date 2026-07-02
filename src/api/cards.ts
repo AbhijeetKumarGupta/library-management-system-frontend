@@ -2,7 +2,8 @@ import { apiRequest } from './client'
 import type { Card, CardRequestDto } from '../types'
 
 export const cardsApi = {
-  getAll: () => apiRequest<Card[]>('/card'),
+    getAll: () => apiRequest<Card[]>('/card'),
+    getUnused: () => apiRequest<Card[]>('/card/unused'),
   getById: (id: number) => apiRequest<Card>(`/card/${id}`),
   create: (data: CardRequestDto) =>
     apiRequest<string>('/card/save', { method: 'POST', body: JSON.stringify(data) }),
